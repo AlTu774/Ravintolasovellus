@@ -1,0 +1,13 @@
+<title>Ravintola sovellus </title>
+<h1>Tervetuloa etusivulle</h1>
+<a href="/login">Kirjaudu sisään</a>
+<hr>
+<a href="/search_restaurant">Etsi tiettyä ravintolaa</a>
+<p>Etsi tiettyä ruokaa</p>
+<hr>
+<h2>Tsekatuimmat ravintolat:</h2>
+<p>
+{% for i in range (0,3) %}
+ <li> {{ views[i] }}
+</p>
+{% endfor %}
