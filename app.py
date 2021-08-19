@@ -22,7 +22,13 @@ def search_restaurant():
 @app.route("/search1_results", methods = ["POST"])
 def search1_results():
     s_term = request.form["search_term"]
-    area = request.form["area"]
+    try:
+        area = request.form["area"]
+    except:
+        result = db.session.execute("SELECT name FROM restaurants WHERE name LIKE :s_term", {"s_term":s_term+"%"})
+        s_results = result.fetchall()   
+        return render_template("search1_results.html", s_results = s_results)
+
     result = db.session.execute("SELECT name FROM restaurants WHERE name LIKE :s_term AND area = :area", {"s_term":s_term+"%", "area":area})
-    s_results = result.fetchall()
+    s_results = result.fetchall()   
     return render_template("search1_results.html", s_results = s_results)
