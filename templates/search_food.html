@@ -1,0 +1,13 @@
+<form action="/search2_results" method="POST">
+Etsi ruokaa:
+<input type="text" name="search_term">
+<br>
+<p>Etsi ruokaa paikkakunnalta</p>
+{% for i in range (0,amount) %}
+<p>
+<input type="radio" name="area" value={{ areas[i][0] }}>{{ areas[i] }} 
+
+{% endfor %}
+
+<input type="submit" value="Lähetä">
+</form>

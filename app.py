@@ -32,3 +32,26 @@ def search1_results():
     result = db.session.execute("SELECT name FROM restaurants WHERE name LIKE :s_term AND area = :area", {"s_term":s_term+"%", "area":area})
     s_results = result.fetchall()   
     return render_template("search1_results.html", s_results = s_results)
+
+@app.route("/search_food")
+def search_food():
+    result = db.session.execute("SELECT area FROM restaurants GROUP BY area")
+    areas = result.fetchall()
+    amount = len(areas)
+    return render_template("search_food.html", areas = areas, amount = amount)
+
+@app.route("/search2_results", methods = ["POST"])
+def search2_results():
+    s_term = request.form["search_term"]
+    try:
+        area = request.form["area"]
+    except:
+        result = db.session.execute("SELECT food FROM menu WHERE food LIKE :s_term", {"s_term":s_term+"%"})
+        s_results = result.fetchall()   
+        return render_template("search1_results.html", s_results = s_results)
+    
+    area = request.form["area"]
+    result = db.session.execute("SELECT M.food FROM menu M, restaurants R WHERE M.res_id = R.id AND M.food LIKE :s_term AND R.area = :area", {"s_term":s_term+"%", "area":area})
+    s_results = result.fetchall()   
+    return render_template("search1_results.html", s_results = s_results)
+
