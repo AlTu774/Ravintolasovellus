@@ -11,3 +11,5 @@ Sovelluksessa voi:
 - ylläpitäjänä poistaa tai lisätä uusia ravintoloita sovellukseen
 - ylläpitäjänä poistaa ravintoloiden arvosteluja
 
+Sovellusta voi koittaa herokussa:
+https://tsoha-ravintolasovellus.herokuapp.com/
