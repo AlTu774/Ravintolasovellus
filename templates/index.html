@@ -7,7 +7,7 @@
 <hr>
 <h2>Tsekatuimmat ravintolat:</h2>
 <p>
-{% for i in range (0,3) %}
- <li> {{ views[i] }}
+{% for i in range (0, count) %}
+ <li> <a href="/restaurant_page/{{ views[i][2] }}">{{ views[i][0] }}</a>, {{ views[i][1] }} 
 </p>
 {% endfor %}
