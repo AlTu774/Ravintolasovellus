@@ -1,5 +1,5 @@
 <h1> {{ restaurant }} </h1>
-<p>Arvosana: stars</p>
+<p>Arvosana:{{ average }}/5</p>
 Menu:
 {% for item in menu %}
 <li>{{ item }}
@@ -7,6 +7,11 @@ Menu:
 Siirry menuun
 <br>
 <p>Arvostelut:</p>
-
-
+{% for review in reviews %}
+<p>{{ review.name }}: {{ review.stars }}/5
+<br>
+{{ review.content }}
+</p>
+<hr>
+{% endfor %}
 
