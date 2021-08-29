@@ -1,9 +1,11 @@
 from flask import Flask
-from flask import render_template, redirect, request
+from flask import render_template, redirect, request, session
 from flask_sqlalchemy import SQLAlchemy
 from os import getenv
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
+app.secret_key = getenv("SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 db = SQLAlchemy(app)
 
@@ -71,3 +73,61 @@ def restaurant_page(id):
     result = db.session.execute("SELECT SUM(stars)/COUNT(*) FROM reviews WHERE res_id = :id", {"id":id})
     average = result.fetchone()
     return render_template("restaurant_page.html", restaurant = restaurant, menu = menu, reviews = reviews, average = average) 
+
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/login_check", methods=["POST"])
+def login_check():
+    username = request.form["username"]
+    password = request.form["password"]
+    result = db.session.execute("SELECT id, password FROM users WHERE name = :username", {"username":username})
+    user = result.fetchone()
+    if not user:
+        return redirect("/login_failed")
+    else:
+        hash_value = user.password
+        check = check_password_hash(hash_value, password)
+        if check:
+            session["username"] = username
+            return redirect("/")
+        else:
+            return redirect("/login_failed")
+
+@app.route("/login_failed")
+def login_failed():
+    return render_template("login_failed.html")
+
+@app.route("/logout")
+def logout():
+    del session["username"]
+    return redirect("/")
+
+@app.route("/signin")
+def signin():
+    return render_template("signin.html")
+
+@app.route("/signin_failed")
+def signin_failed():
+    return render_template("signin_failed.html")
+
+@app.route("/signin_check", methods=["POST"])
+def signin_check():
+    username = request.form["username"]
+    password = request.form["password"]
+    result = db.session.execute("SELECT name FROM users")
+    names = result.fetchall()
+    for name in names:
+        if username == name[0]:
+            return redirect("/signin_failed")
+        
+    hash_value = generate_password_hash(password)
+    sql = db.session.execute("INSERT INTO users (name, password) VALUES (:username, :hash_value)", {"username":username, "hash_value":hash_value})
+    db.session.commit()
+    session["username"] = username
+    return redirect ("/")
+
+        
+
+
