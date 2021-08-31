@@ -1,0 +1,15 @@
+{% if session.username %}
+<form action="/review2/{{ id }}" method="POST">
+{% if rated %}
+<p>Ravintola: {{ restaurant.name }}</p>
+<input type="number" name="stars" min="1" max="5"/>
+<input type="text" name="review" value={{ review.content }}/>
+<input type="submit" value="Tallenna muutokset"</p>
+{% else %}
+<p>Ravintola: {{ restaurant.name }}</p>
+<input type="number" name="stars" min="1" max="5"/>
+<input type="text" name="review" placeholder="Kirjoita arvostelu"/>
+<input type="submit" value="Lähetä arvotelu"/>
+{% endif %}
+{% endif %}
+</form>

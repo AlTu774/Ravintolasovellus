@@ -6,6 +6,13 @@ Menu:
 {% endfor %}
 Siirry menuun
 <br>
+{% if session.username %}
+{% if rated %}
+<a href="/review/{{ id }}">Muokkaa arvosteluasi</a>
+{% else %}
+<a href="/review/{{ id }}">Lähetä arvostelu</a>
+{% endif %}
+{% endif %}
 <p>Arvostelut:</p>
 {% for review in reviews %}
 <p>{{ review.name }}: {{ review.stars }}/5

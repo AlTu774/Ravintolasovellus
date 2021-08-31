@@ -1,4 +1,18 @@
 <title>Ravintola sovellus </title>
+{% if session.username %}
+<h1>Tervetuloa etusivulle, <a href="/profile/{{ id }}">{{ session.username }}</a></h1>
+<a href="/login">Kirjaudu sisään</a>
+<hr>
+<a href="/search_restaurant">Etsi tiettyä ravintolaa</a>
+<br><a href="/search_food">Etsi tiettyä ruokaa</a>
+<hr>
+<h2>Tsekatuimmat ravintolat:</h2>
+<p>
+{% for i in range (0, count) %}
+ <li> <a href="/restaurant_page/{{ views[i][2] }}">{{ views[i][0] }}</a>, {{ views[i][1] }} 
+</p>
+{% endfor %}
+{% else %}
 <h1>Tervetuloa etusivulle</h1>
 <a href="/login">Kirjaudu sisään</a>
 <hr>
@@ -11,3 +25,4 @@
  <li> <a href="/restaurant_page/{{ views[i][2] }}">{{ views[i][0] }}</a>, {{ views[i][1] }} 
 </p>
 {% endfor %}
+{% endif %}

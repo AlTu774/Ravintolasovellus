@@ -68,11 +68,31 @@ def restaurant_page(id):
     restaurant = result.fetchone()
     result = db.session.execute("SELECT food FROM menu WHERE res_id = :id", {"id":id})
     menu = result.fetchall()
-    result = db.session.execute("SELECT R.stars, R.content, U.name FROM reviews R, users U WHERE R.user_id = U.id AND R.res_id = :id", {"id":id})
+    result = db.session.execute("SELECT R.stars, R.content, U.name FROM reviews R, users U WHERE R.user_id = U.id AND R.res_id = :id ORDER BY R.id DESC", {"id":id})
     reviews = result.fetchall()
     result = db.session.execute("SELECT SUM(stars)/COUNT(*) FROM reviews WHERE res_id = :id", {"id":id})
     average = result.fetchone()
-    return render_template("restaurant_page.html", restaurant = restaurant, menu = menu, reviews = reviews, average = average) 
+    sql = """
+        SELECT
+            R.id
+        FROM
+            reviews R, users U, restaurants RE
+        WHERE
+            R.user_id = U.id 
+        AND
+            R.res_id = RE.id
+        AND
+            U.name = :username
+        AND
+            RE.name = :restaurant
+    """
+    result = db.session.execute(sql, {"username":session["username"], "restaurant":restaurant[0]}) 
+    r_id = result.fetchone()
+    if not r_id:
+        rated = False
+    else:
+        rated = True
+    return render_template("restaurant_page.html", restaurant = restaurant, menu = menu, reviews = reviews, id=id,average = average, rated = rated) 
 
 @app.route("/login")
 def login():
@@ -128,6 +148,59 @@ def signin_check():
     session["username"] = username
     return redirect ("/")
 
+@app.route("/review/<int:id>")
+def review(id):
+    result = db.session.execute("SELECT name FROM restaurants WHERE id = :id", {"id":id})
+    restaurant = result.fetchone()
+    result = db.session.execute("SELECT content FROM reviews WHERE user_id = :id", {"id":id})
+    review = result.fetchone()
+    if not review:
+        rated = False
+    else:
+        rated = True
+    print(id)
+    return render_template("review.html", restaurant = restaurant, id = id, review = review)
+
+@app.route("/review2/<int:id>", methods=["POST"])
+def review2(id):
+    review = request.form["review"]
+    print(review)
+    stars = request.form["stars"]
+    print(stars)
+    result = db.session.execute("SELECT id FROM users WHERE name = :username", {"username": session["username"]})
+    user_id = result.fetchone()
+    result = db.session.execute("SELECT id FROM reviews WHERE user_id = :user_id AND res_id = :res_id", {"user_id":user_id[0], "res_id":id})
+    review_id = result.fetchone()
+    if not review_id:
+        rated = False
+    else:
+        rated = True 
+    if rated:
+        result = db.session.execute("SELECT id FROM users WHERE name = :username", {"username":session["username"]})
+        user_id = result.fetchone()
+        sql = db.session.execute("UPDATE reviews SET content = :review, stars = :stars WHERE user_id = :user_id", {"user_id":user_id[0], "review":review, "stars":int(stars)})
+        db.session.commit()
+        print(id)
+        return redirect("/restaurant_page/"+ str(id))
+    else:
+        sql = db.session.execute("INSERT INTO reviews (stars,content,user_id,res_id) VALUES (:stars, :review, :user_id, :res_id)", {"stars":int(stars), "review":review, "user_id":user_id[0], "res_id":id})
+        db.session.commit()
+        print(id)
+        return redirect("/restaurant_page/"+str(id))
+
+
         
 
 
+sql="""
+    SELECT 
+        M.food
+    FROM 
+        menu M, restaurants R 
+    WHERE 
+        M.res_id = R.id 
+    AND 
+        M.food LIKE :s_term 
+    AND 
+        R.area = :area
+"""
