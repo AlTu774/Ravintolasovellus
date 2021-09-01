@@ -17,7 +17,12 @@ def index():
         count = len(views)
     else:
         count = 3
-    return render_template("index.html", views = views, count = count)
+    try:
+        result = db.session.execute("SELECT id FROM users WHERE name = :username", {"username":session["username"]})
+        user_id = result.fetchone()
+        return render_template("index.html", views = views, count = count, id = user_id)
+    except:
+        return render_template("index.html", views = views, count = count)
 
 @app.route("/search_restaurant")
 def search_restaurant():
@@ -143,8 +148,8 @@ def signin_check():
             return redirect("/signin_failed")
         
     hash_value = generate_password_hash(password)
-    sql = db.session.execute("INSERT INTO users (name, password) VALUES (:username, :hash_value)", {"username":username, "hash_value":hash_value})
-    db.session.commit()
+    sql = db.session.execute("INSERT INTO users (name, password, address, paymethod) VALUES (:username, :hash_value, ' ', ' ')", {"username":username, "hash_value":hash_value})
+    db.session.commit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ()
     session["username"] = username
     return redirect ("/")
 
@@ -188,6 +193,25 @@ def review2(id):
         print(id)
         return redirect("/restaurant_page/"+str(id))
 
+@app.route("/profile/<int:id>")
+def profile(id):
+    allow = False
+    try:
+        result = db.session.execute("SELECT id FROM users WHERE name = :username", {"username":session["username"]})
+        session_id = result.fetchone()
+        if session_id[0] == id:
+            allow = True
+        else:
+            allow = False
+    except:
+        allow = False
+    if not allow:
+        return render_template("error.html")
+    else:
+        username = session["username"]
+        result = db.session.execute("SELECT address, paymethod FROM users WHERE id = :id", {"id":id})
+        info = result.fetchall()
+        return render_template("profile.html", username = username, info = info)
 
         
 

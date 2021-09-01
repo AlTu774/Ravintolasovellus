@@ -1,6 +1,6 @@
 <title>Ravintola sovellus </title>
 {% if session.username %}
-<h1>Tervetuloa etusivulle, <a href="/profile/{{ id }}">{{ session.username }}</a></h1>
+<h1>Tervetuloa etusivulle, <a href="/profile/{{ id.id }}">{{ session.username }}</a></h1>
 <a href="/login">Kirjaudu sisään</a>
 <hr>
 <a href="/search_restaurant">Etsi tiettyä ravintolaa</a>
