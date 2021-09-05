@@ -1,8 +1,8 @@
-<h1> {{ restaurant }} </h1>
-<p>Arvosana:{{ average }}/5</p>
+<h1> {{ restaurant[0] }} </h1>
+<p>Arvosana:{{ average[0] }}/5</p>
 Menu:
 {% for item in menu %}
-<li>{{ item }}
+<li>{{ item[0] }}
 {% endfor %}
 <a href="/menu/{{ id }}">Siirry menuun</a>
 <br>
