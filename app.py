@@ -37,11 +37,11 @@ def search1_results():
     try:
         area = request.form["area"]
     except:
-        result = db.session.execute("SELECT name FROM restaurants WHERE name LIKE :s_term", {"s_term":s_term+"%"})
+        result = db.session.execute("SELECT name, id FROM restaurants WHERE name LIKE :s_term", {"s_term":s_term+"%"})
         s_results = result.fetchall()   
         return render_template("search1_results.html", s_results = s_results)
 
-    result = db.session.execute("SELECT name FROM restaurants WHERE name LIKE :s_term AND area = :area", {"s_term":s_term+"%", "area":area})
+    result = db.session.execute("SELECT name, id FROM restaurants WHERE name LIKE :s_term AND area = :area", {"s_term":s_term+"%", "area":area})
     s_results = result.fetchall()   
     return render_template("search1_results.html", s_results = s_results)
 
@@ -58,14 +58,16 @@ def search2_results():
     try:
         area = request.form["area"]
     except:
-        result = db.session.execute("SELECT food FROM menu WHERE food LIKE :s_term", {"s_term":s_term+"%"})
-        s_results = result.fetchall()   
-        return render_template("search1_results.html", s_results = s_results)
+        result = db.session.execute("SELECT M.food, R.name, R.id FROM menu M, restaurants R WHERE M.res_id = R.id AND M.food LIKE :s_term", {"s_term":s_term+"%"})
+        s_results = result.fetchall()
+        print(s_results)   
+        return render_template("search2_results.html", s_results = s_results)
     
     area = request.form["area"]
-    result = db.session.execute("SELECT M.food FROM menu M, restaurants R WHERE M.res_id = R.id AND M.food LIKE :s_term AND R.area = :area", {"s_term":s_term+"%", "area":area})
-    s_results = result.fetchall()   
-    return render_template("search1_results.html", s_results = s_results)
+    result = db.session.execute("SELECT M.food, R.name, R.id FROM menu M, restaurants R WHERE M.res_id = R.id AND M.food LIKE :s_term AND R.area = :area", {"s_term":s_term+"%", "area":area})
+    s_results = result.fetchall()
+    print(s_results)   
+    return render_template("search2_results.html", s_results = s_results)
 
 @app.route("/restaurant_page/<int:id>")
 def restaurant_page(id):
@@ -280,18 +282,3 @@ def process_order():
         db.session.commit()
         food_ids.pop(0)
     return render_template("order_done.html")
-
-
-
-sql="""
-    SELECT 
-        M.food
-    FROM 
-        menu M, restaurants R 
-    WHERE 
-        M.res_id = R.id 
-    AND 
-        M.food LIKE :s_term 
-    AND 
-        R.area = :area
-"""
