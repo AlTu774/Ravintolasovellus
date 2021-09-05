@@ -216,7 +216,18 @@ def profile(id):
         username = session["username"]
         result = db.session.execute("SELECT address, paymethod FROM users WHERE id = :id", {"id":id})
         info = result.fetchall()
-        return render_template("profile.html", username = username, info = info)
+        result = db.session.execute("SELECT O.id, O.pricesum, R.name, O.extras FROM orders O, restaurants R WHERE O.res_id = R.id AND O.user_id = :user_id", {"user_id":id})
+        orders = result.fetchall()
+        all_orders = []
+        for order in orders:
+            result = db.session.execute("SELECT M.food, OM.x FROM orders_menu OM, menu M WHERE OM.food_id = M.id AND OM.order_id = :order_id", {"order_id":order.id})
+            items = result.fetchall()
+            print(items)
+            ordertext = str(order.pricesum)+"€ Ravintolasta: "+order.name+" Erikoistoiveena:'"+order.extras+"'  "
+            for item in items:
+                ordertext = ordertext + str(item.x)+"x "+item.food+" "
+            all_orders.append(ordertext)
+        return render_template("profile.html", username = username, info = info, all_orders = all_orders)
 
 @app.route("/menu/<int:id>")
 def menu(id):
