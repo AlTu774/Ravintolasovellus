@@ -4,7 +4,7 @@ Menu:
 {% for item in menu %}
 <li>{{ item }}
 {% endfor %}
-Siirry menuun
+<a href="/menu/{{ id }}">Siirry menuun</a>
 <br>
 {% if session.username %}
 {% if rated %}

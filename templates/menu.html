@@ -1,0 +1,9 @@
+<form action="/order" method="POST">
+{% for item in items %}
+<input type="checkbox" name="food" value="{{ item.id }}"> {{ item.food }} {{ item.price }}€
+<input type="number" name="x" min=1 max=99>
+<br>
+{% endfor %}
+<input type="hidden" name="res_id" value="{{ id }}">
+<input type="submit" value="Tilaa ruokaa">
+</form>

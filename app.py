@@ -77,7 +77,8 @@ def restaurant_page(id):
     reviews = result.fetchall()
     result = db.session.execute("SELECT SUM(stars)/COUNT(*) FROM reviews WHERE res_id = :id", {"id":id})
     average = result.fetchone()
-    sql = """
+    try:
+        sql = """
         SELECT
             R.id
         FROM
@@ -90,14 +91,16 @@ def restaurant_page(id):
             U.name = :username
         AND
             RE.name = :restaurant
-    """
-    result = db.session.execute(sql, {"username":session["username"], "restaurant":restaurant[0]}) 
-    r_id = result.fetchone()
-    if not r_id:
-        rated = False
-    else:
-        rated = True
-    return render_template("restaurant_page.html", restaurant = restaurant, menu = menu, reviews = reviews, id=id,average = average, rated = rated) 
+        """
+        result = db.session.execute(sql, {"username":session["username"], "restaurant":restaurant[0]}) 
+        r_id = result.fetchone()
+        if not r_id:
+            rated = False
+        else:
+            rated = True
+        return render_template("restaurant_page.html", restaurant = restaurant, menu = menu, reviews = reviews, id = id, average = average, rated = rated)
+    except:
+        return render_template("restaurant_page.html", restaurant = restaurant, menu = menu, reviews = reviews, id=id,average = average)
 
 @app.route("/login")
 def login():
@@ -148,7 +151,7 @@ def signin_check():
             return redirect("/signin_failed")
         
     hash_value = generate_password_hash(password)
-    sql = db.session.execute("INSERT INTO users (name, password, address, paymethod) VALUES (:username, :hash_value, ' ', ' ')", {"username":username, "hash_value":hash_value})
+    sql = db.session.execute("INSERT INTO users (name, password, address, paymethod, admin) VALUES (:username, :hash_value, ' ', ' ', False)", {"username":username, "hash_value":hash_value})
     db.session.commit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ()
     session["username"] = username
     return redirect ("/")
@@ -163,7 +166,6 @@ def review(id):
         rated = False
     else:
         rated = True
-    print(id)
     return render_template("review.html", restaurant = restaurant, id = id, review = review)
 
 @app.route("/review2/<int:id>", methods=["POST"])
@@ -213,7 +215,72 @@ def profile(id):
         info = result.fetchall()
         return render_template("profile.html", username = username, info = info)
 
-        
+@app.route("/menu/<int:id>")
+def menu(id):
+    result = db.session.execute("SELECT id, food, price FROM menu WHERE res_id = :id", {"id":id})
+    items = result.fetchall()
+    return render_template("menu.html", items = items, id = id)
+
+@app.route("/order", methods=["POST"])
+def order():
+    amount = request.form.getlist("x")
+    food_ids = request.form.getlist("food")
+    res_id = request.form["res_id"]
+    pricesum = 0
+    foods = []
+    print(amount)
+    for food_id in food_ids:
+        result = db.session.execute("SELECT food, price FROM menu WHERE id = :id", {"id":food_id[0]})
+        nameprice = result.fetchone()
+        if amount[0] == '' :
+            while amount[0] == '':
+                amount.pop(0)
+        pricesum = pricesum + int(amount[0])*nameprice[1]
+        foods.append((nameprice[0],amount[0]))
+        amount.pop(0)
+    return render_template("order.html", foods = foods, pricesum = pricesum, res_id = res_id)
+
+@app.route("/process_order", methods=["POST"])
+def process_order():
+    foods = request.form.getlist("food")
+    print(foods)
+    pricesum = request.form["pricesum"]
+    amounts = request.form.getlist("x")
+    extras = request.form["extras"]
+    address = request.form["address"]
+    paymethod = request.form["paymethod"]
+    res_id = request.form["res_id"]
+    food_ids = []
+    for food in foods:
+        print(food)
+        result = db.session.execute("SELECT id FROM menu WHERE res_id = :res_id AND food = :food", {"res_id":res_id, "food":food})
+        food_ids.append(result.fetchone()[0])
+    result = db.session.execute("SELECT id FROM users WHERE name = :username", {"username":session["username"]})
+    user_id = result.fetchone()
+    sql ="""
+        INSERT INTO
+            orders
+            (pricesum, res_id, address, paymethod, extras, user_id)
+        VALUES
+            (:pricesum, :res_id, :address, :paymethod, :extras, :user_id)
+        """
+    result = db.session.execute(sql, {"pricesum":int(pricesum), "res_id":int(res_id), "address":address, "paymethod":paymethod, "extras":extras, "user_id":user_id[0]})
+    db.session.commit()
+    result = db.session.execute("SELECT MAX(id) FROM orders")
+    order_id = result.fetchone()
+    for x in amounts:
+        sql ="""
+            INSERT INTO
+                orders_menu
+                (food_id, x, order_id)
+            VALUES
+                (:food_id, :x, :order_id)
+            """
+        result = db.session.execute(sql, {"food_id":int(food_ids[0]), "x":int(x), "order_id":order_id[0]})
+        db.session.commit()
+        food_ids.pop(0)
+    return render_template("order_done.html")
+
 
 
 sql="""

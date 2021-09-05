@@ -1,0 +1,16 @@
+<form action="/process_order" method="POST">
+{% for food in foods %}
+<li>{{ food[0] }} x{{ food[1] }}
+<input type="hidden" name="food" value="{{ food[0] }}">
+<input type="hidden" name="x" value="{{ food[1] }}">
+{% endfor %}
+<p>Hinta: {{ pricesum }}</p>
+<p>Erikoistoiveet: <br>
+<textarea name="extras"></textarea>
+</p>
+<p>Osoite:<textarea name="address"></textarea></p>
+<p>Maksutapa:<textarea name="paymethod"></textarea></p>
+<input type="hidden" name="pricesum" value="{{ pricesum }}">
+<input type="hidden" name="res_id" value="{{ res_id }}">
+<input type="submit" value="Tee tilaus">
+</form>
