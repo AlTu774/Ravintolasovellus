@@ -71,6 +71,11 @@ def search2_results():
 
 @app.route("/restaurant_page/<int:id>")
 def restaurant_page(id):
+    result = db.session.execute("SELECT views FROM restaurants WHERE id = :id", {"id":id})
+    views = result.fetchone()[0]
+    newviews = views + 1
+    db.session.execute("UPDATE restaurants SET views = :views WHERE id = :id", {"views":newviews, "id":id})
+    db.session.commit()
     result = db.session.execute("SELECT name FROM restaurants WHERE id = :id", {"id":id})
     restaurant = result.fetchone()
     result = db.session.execute("SELECT food FROM menu WHERE res_id = :id", {"id":id})
@@ -173,9 +178,7 @@ def review(id):
 @app.route("/review2/<int:id>", methods=["POST"])
 def review2(id):
     review = request.form["review"]
-    print(review)
     stars = request.form["stars"]
-    print(stars)
     result = db.session.execute("SELECT id FROM users WHERE name = :username", {"username": session["username"]})
     user_id = result.fetchone()
     result = db.session.execute("SELECT id FROM reviews WHERE user_id = :user_id AND res_id = :res_id", {"user_id":user_id[0], "res_id":id})
@@ -189,12 +192,10 @@ def review2(id):
         user_id = result.fetchone()
         sql = db.session.execute("UPDATE reviews SET content = :review, stars = :stars WHERE user_id = :user_id", {"user_id":user_id[0], "review":review, "stars":int(stars)})
         db.session.commit()
-        print(id)
         return redirect("/restaurant_page/"+ str(id))
     else:
         sql = db.session.execute("INSERT INTO reviews (stars,content,user_id,res_id) VALUES (:stars, :review, :user_id, :res_id)", {"stars":int(stars), "review":review, "user_id":user_id[0], "res_id":id})
         db.session.commit()
-        print(id)
         return redirect("/restaurant_page/"+str(id))
 
 @app.route("/profile/<int:id>")
@@ -230,7 +231,6 @@ def order():
     res_id = request.form["res_id"]
     pricesum = 0
     foods = []
-    print(amount)
     for food_id in food_ids:
         result = db.session.execute("SELECT food, price FROM menu WHERE id = :id", {"id":food_id[0]})
         nameprice = result.fetchone()
@@ -245,7 +245,6 @@ def order():
 @app.route("/process_order", methods=["POST"])
 def process_order():
     foods = request.form.getlist("food")
-    print(foods)
     pricesum = request.form["pricesum"]
     amounts = request.form.getlist("x")
     extras = request.form["extras"]
@@ -254,7 +253,6 @@ def process_order():
     res_id = request.form["res_id"]
     food_ids = []
     for food in foods:
-        print(food)
         result = db.session.execute("SELECT id FROM menu WHERE res_id = :res_id AND food = :food", {"res_id":res_id, "food":food})
         food_ids.append(result.fetchone()[0])
     result = db.session.execute("SELECT id FROM users WHERE name = :username", {"username":session["username"]})
